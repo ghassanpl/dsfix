@@ -26,6 +26,14 @@ void RSManager::initResources() {
 			fxaa = new FXAA(d3ddev, rw, rh, (FXAA::Quality)(Settings::get().getAAQuality()-1));
 		}
 	}
+
+	if (Settings::get().getLimboMode())
+	{
+		doLimbo = true;
+		limbo = new LIMBO(d3ddev, rw, rh, Settings::get().getLimboZNear(), Settings::get().getLimboZFar());
+		limboLevel = min(8, Settings::get().getLimboLevel() + 3);
+	}
+
 	if(Settings::get().getSsaoStrength()) ssao = new SSAO(d3ddev, rw, rh, Settings::get().getSsaoStrength()-1, 
 		(Settings::get().getSsaoType() == "VSSAO") ? SSAO::VSSAO : ((Settings::get().getSsaoType() == "HBAO") ? SSAO::HBAO : SSAO::SCAO) );
 	if(Settings::get().getDOFBlurAmount()) gauss = new GAUSS(d3ddev, dofRes*16/9, dofRes);
@@ -50,6 +58,7 @@ void RSManager::releaseResources() {
 	SAFEDELETE(ssao);
 	SAFEDELETE(gauss);
 	SAFEDELETE(hud);
+	SAFEDELETE(limbo);
 	SDLOG(0, "RenderstateManager resource release completed\n");
 }
 
@@ -257,6 +266,40 @@ HRESULT RSManager::redirectSetRenderTarget(DWORD RenderTargetIndex, IDirect3DSur
 		}
 		oldRenderTarget->Release();
 	}
+
+	/// Limbo-mode
+	
+	if (mainRTuses == limboLevel && mainRT && zSurf && doLimbo && limbo)
+	{
+		IDirect3DSurface9 *oldRenderTarget;
+		d3ddev->GetRenderTarget(0, &oldRenderTarget);
+		if (oldRenderTarget == mainRT) {
+			// final renderbuffer has to be from texture, just making sure here
+			if (IDirect3DTexture9* tex = getSurfTexture(oldRenderTarget)) {
+				// check size just to make even more sure
+				D3DSURFACE_DESC desc;
+				oldRenderTarget->GetDesc(&desc);
+				if (desc.Width == Settings::get().getRenderWidth() && desc.Height == Settings::get().getRenderHeight()) {
+					IDirect3DTexture9 *zTex = getSurfTexture(zSurf);
+
+					storeRenderState();
+					d3ddev->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+					d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+					d3ddev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+
+					/// Draw zbuffer
+					limbo->go(zTex, oldRenderTarget);
+					//d3ddev->StretchRect(zSurf, NULL, oldRenderTarget, NULL, D3DTEXF_NONE);
+
+					restoreRenderState();
+					zTex->Release();
+				}
+				tex->Release();
+			}
+		}
+		oldRenderTarget->Release();
+	}
+	//*/
 
 	// DoF blur stuff
 	if(gauss && doDofGauss) {

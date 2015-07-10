@@ -17,6 +17,11 @@ SETTING(unsigned, SsaoStrength, "ssaoStrength", 0);
 SETTING(unsigned, SsaoScale, "ssaoScale", 0);
 SETTING(std::string, SsaoType, "ssaoType", "VSSAO");
 
+SETTING(bool, LimboMode, "limboMode", 0);
+SETTING(float, LimboZNear, "limboZNear", 0.01f);
+SETTING(float, LimboZFar, "limboZFar", 30.0f);
+SETTING(unsigned, LimboLevel, "limboLevel", 1);
+
 SETTING(bool, UnlockFPS, "unlockFPS", 0);
 SETTING(unsigned, FPSLimit, "FPSlimit", 30);
 SETTING(unsigned, FPSThreshold, "FPSthreshold", 28);

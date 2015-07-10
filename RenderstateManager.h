@@ -10,6 +10,7 @@
 #include "SSAO.h"
 #include "GAUSS.h"
 #include "HUD.h"
+#include "LIMBO.h"
 
 class RSManager {
 	static RSManager instance;
@@ -24,6 +25,10 @@ class RSManager {
 	bool doAA;
 	SMAA* smaa;
 	FXAA* fxaa;
+
+	bool doLimbo = false;
+	LIMBO* limbo = nullptr;
+	unsigned limboLevel = 4;
 	
 	bool doSsao;
 	SSAO* ssao;
