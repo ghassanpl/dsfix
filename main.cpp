@@ -98,7 +98,7 @@ void __cdecl sdlogtime() {
 }
 
 void __cdecl sdlog(const char *fmt, ...) {
-	if(ofile != NULL) {
+	if(ofile.is_open()) {
 		if(!fmt) { return; }
 
 		va_list va_alist;
@@ -134,5 +134,5 @@ void errorExit(LPTSTR lpszFunction) {
 
 bool fileExists(const char *filename) {
   std::ifstream ifile(filename);
-  return NULL != ifile;
+  return ifile.is_open();
 }

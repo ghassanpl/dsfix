@@ -2,7 +2,7 @@
 
 #include "main.h"
 
-#include <detours.h>
+#include "../Detour/dll/src/detours.h"
 
 static DWORD (WINAPI * TrueSleepEx)(DWORD dwMilliseconds, BOOL bAlertable) = SleepEx;
 
