@@ -29,7 +29,7 @@ class RSManager {
 	bool doLimbo = false;
 	LIMBO* limbo = nullptr;
 	unsigned limboLevel = 4;
-	
+
 	bool doSsao;
 	SSAO* ssao;
 
@@ -150,6 +150,10 @@ public:
 	void reloadScao();
 	void reloadGauss();
 	void reloadAA();
+
+	void toggleLimbo() { doLimbo = !doLimbo; }
+	void increaseLimboLevel() { limboLevel = min(limboLevel + 1, 8); }
+	void decreaseLimboLevel() { limboLevel = max(limboLevel - 1, 3); }
 
 	bool allowStateChanges() { return !onHudRT; }
 

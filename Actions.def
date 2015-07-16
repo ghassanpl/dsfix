@@ -23,6 +23,12 @@ ACTION(toggleHUDChanges, RSManager::get().toggleChangeHud())
 
 ACTION(toggle30FPSLimit, Settings::get().toggle30FPSLimit())
 
+// Limbo Actions
+
+ACTION(toggleLimbo, RSManager::get().toggleLimbo())
+ACTION(increaseLimboLevel, RSManager::get().increaseLimboLevel())
+ACTION(decreaseLimboLevel, RSManager::get().decreaseLimboLevel())
+
 // Development Actions
 
 ACTION(reloadVSSAOEffect, RSManager::get().reloadVssao())
