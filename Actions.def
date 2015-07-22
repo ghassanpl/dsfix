@@ -28,6 +28,8 @@ ACTION(toggle30FPSLimit, Settings::get().toggle30FPSLimit())
 ACTION(toggleLimbo, RSManager::get().toggleLimbo())
 ACTION(increaseLimboLevel, RSManager::get().increaseLimboLevel())
 ACTION(decreaseLimboLevel, RSManager::get().decreaseLimboLevel())
+ACTION(increaseLimboZFar, RSManager::get().increaseLimboZFar())
+ACTION(decreaseLimboZFar, RSManager::get().decreaseLimboZFar())
 
 // Development Actions
 

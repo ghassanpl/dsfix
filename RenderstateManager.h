@@ -29,6 +29,11 @@ class RSManager {
 	bool doLimbo = false;
 	LIMBO* limbo = nullptr;
 	unsigned limboLevel = 4;
+	int startedLimboCount = -1;
+	float limboZNear = 0.01f;
+	float limboZFar = 30.0f;
+
+	void DoLimbo();
 
 	bool doSsao;
 	SSAO* ssao;
@@ -154,6 +159,8 @@ public:
 	void toggleLimbo() { doLimbo = !doLimbo; }
 	void increaseLimboLevel() { limboLevel = min(limboLevel + 1, 8); }
 	void decreaseLimboLevel() { limboLevel = max(limboLevel - 1, 3); }
+	void increaseLimboZFar() { limboZFar = limboZFar + 5.0f; }
+	void decreaseLimboZFar() { limboZFar = max(limboZFar - 5.0f, 5.0f); }
 
 	bool allowStateChanges() { return !onHudRT; }
 

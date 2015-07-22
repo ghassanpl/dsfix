@@ -30,8 +30,10 @@ void RSManager::initResources() {
 	if (Settings::get().getLimboMode())
 	{
 		doLimbo = true;
-		limbo = new LIMBO(d3ddev, rw, rh, Settings::get().getLimboZNear(), Settings::get().getLimboZFar());
+		limbo = new LIMBO(d3ddev, rw, rh);
 		limboLevel = min(8, Settings::get().getLimboLevel() + 3);
+		limboZNear = Settings::get().getLimboZNear();
+		limboZFar = Settings::get().getLimboZFar();
 	}
 
 	if(Settings::get().getSsaoStrength()) ssao = new SSAO(d3ddev, rw, rh, Settings::get().getSsaoStrength()-1, 
@@ -153,6 +155,40 @@ void RSManager::registerMainRenderSurface(IDirect3DSurface9* pSurface) {
 	}
 }
 
+void RSManager::DoLimbo()
+{
+	if (!(mainRT && zSurf && doLimbo && limbo)) return;
+
+	IDirect3DSurface9 *oldRenderTarget;
+	d3ddev->GetRenderTarget(0, &oldRenderTarget);
+	if (oldRenderTarget == mainRT) {
+		// final renderbuffer has to be from texture, just making sure here
+		if (IDirect3DTexture9* tex = getSurfTexture(oldRenderTarget)) {
+			// check size just to make even more sure
+			D3DSURFACE_DESC desc;
+			oldRenderTarget->GetDesc(&desc);
+			if (desc.Width == Settings::get().getRenderWidth() && desc.Height == Settings::get().getRenderHeight()) {
+				IDirect3DTexture9 *zTex = getSurfTexture(zSurf);
+
+				storeRenderState();
+				d3ddev->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
+				d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
+				d3ddev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
+
+				/// Draw zbuffer
+				limbo->go(zTex, oldRenderTarget, limboZNear, limboZFar);
+				SDLOG(0, "ZNear: %g, ZFar: %g\n", limboZNear, limboZFar);
+				//d3ddev->StretchRect(zSurf, NULL, oldRenderTarget, NULL, D3DTEXF_NONE);
+
+				restoreRenderState();
+				zTex->Release();
+			}
+			tex->Release();
+		}
+	}
+	oldRenderTarget->Release();
+}
+
 
 HRESULT RSManager::redirectSetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9* pRenderTarget) {
 	nrts++;
@@ -269,35 +305,9 @@ HRESULT RSManager::redirectSetRenderTarget(DWORD RenderTargetIndex, IDirect3DSur
 
 	/// Limbo-mode
 	
-	if (mainRTuses == limboLevel && mainRT && zSurf && doLimbo && limbo)
+	if (mainRTuses == limboLevel)
 	{
-		IDirect3DSurface9 *oldRenderTarget;
-		d3ddev->GetRenderTarget(0, &oldRenderTarget);
-		if (oldRenderTarget == mainRT) {
-			// final renderbuffer has to be from texture, just making sure here
-			if (IDirect3DTexture9* tex = getSurfTexture(oldRenderTarget)) {
-				// check size just to make even more sure
-				D3DSURFACE_DESC desc;
-				oldRenderTarget->GetDesc(&desc);
-				if (desc.Width == Settings::get().getRenderWidth() && desc.Height == Settings::get().getRenderHeight()) {
-					IDirect3DTexture9 *zTex = getSurfTexture(zSurf);
-
-					storeRenderState();
-					d3ddev->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
-					d3ddev->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
-					d3ddev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE);
-
-					/// Draw zbuffer
-					limbo->go(zTex, oldRenderTarget);
-					//d3ddev->StretchRect(zSurf, NULL, oldRenderTarget, NULL, D3DTEXF_NONE);
-
-					restoreRenderState();
-					zTex->Release();
-				}
-				tex->Release();
-			}
-		}
-		oldRenderTarget->Release();
+		DoLimbo();
 	}
 	//*/
 
